@@ -382,18 +382,15 @@ const SIPCalculatorPage: NextPage = () => {
       return formatCurrency(value);
     }
     
-    if (value >= 10000000000000) { // 10 Trillion
-      return `${(value / 1000000000000).toFixed(2)} Trillion PKR`;
-    } else if (value >= 1000000000000) { // 1 Trillion
-      return `${(value / 1000000000000).toFixed(2)} Trillion PKR`;
-    } else if (value >= 10000000000) { // 10 Billion
-      return `${(value / 1000000000).toFixed(2)} Billion PKR`;
-    } else if (value >= 1000000000) { // 1 Billion
-      return `${(value / 1000000000).toFixed(2)} Billion PKR`;
+    // Pakistani number system: 1 Lakh = 100,000, 1 Crore = 10,000,000 (100 Lakh)
+    if (value >= 10000000000) { // 1000 Crore = 1 Arab
+      return `${(value / 10000000000).toFixed(2)} Arab PKR`;
     } else if (value >= 10000000) { // 1 Crore
       return `${(value / 10000000).toFixed(2)} Crore PKR`;
     } else if (value >= 100000) { // 1 Lakh
       return `${(value / 100000).toFixed(2)} Lakh PKR`;
+    } else if (value >= 1000) { // 1 Thousand
+      return `${(value / 1000).toFixed(2)} Thousand PKR`;
     } else {
       return `${value.toLocaleString()} PKR`;
     }
@@ -411,7 +408,6 @@ const SIPCalculatorPage: NextPage = () => {
     const periodicInvestment = inputs.investmentFrequency === 'monthly' ? P : inputs.investmentFrequency === 'quarterly' ? P * 3 : P * 12;
     
     let cumulativeInvestment = existingAmount;
-    let currentPeriodicInvestment = periodicInvestment;
     
     for (let year = 1; year <= inputs.years; year++) {
       // Calculate existing amount growth
@@ -841,7 +837,7 @@ const SIPCalculatorPage: NextPage = () => {
                       <p className="text-xs sm:text-sm font-medium text-purple-700 dark:text-purple-300">Inflation Adjusted</p>
                     </div>
                     <p className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-800 dark:text-purple-200 break-words">{formatAmount(results.futureValue / Math.pow(1 + inputs.inflationRate / 100, inputs.years))}</p>
-                    <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">Today's buying power</p>
+                    <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">Today&apos;s buying power</p>
                   </div>
                 </div>
 
@@ -879,7 +875,12 @@ const SIPCalculatorPage: NextPage = () => {
                         <LineChart data={yearlyData}>
                           <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                           <XAxis dataKey="year" />
-                          <YAxis tickFormatter={(value) => `${(value / 100000).toFixed(0)}L`} />
+                          <YAxis tickFormatter={(value) => {
+                            if (value >= 10000000) return `${(value / 10000000).toFixed(1)}Cr`;
+                            if (value >= 100000) return `${(value / 100000).toFixed(1)}L`;
+                            if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+                            return value.toString();
+                          }} />
                           <Tooltip formatter={(value: number) => formatAmount(value)} />
                           <Line type="monotone" dataKey="invested" stroke="#059669" strokeWidth={2} name="Invested" />
                           <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} name="Total Value" />
